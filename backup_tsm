@@ -9,7 +9,7 @@ do
   then
     OK=$[OK+1]
   fi
-  sleep(120)
+  sleep(60)
 done
 
 if [ ${OK} -eq $# ]
