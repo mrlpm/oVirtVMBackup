@@ -9,7 +9,6 @@ import sys
 import time
 import codecs
 from xml.dom import minidom
-from lxml import etree
 from ovirtsdk.api import API
 from ovirtsdk.infrastructure.errors import RequestError
 from ovirtsdk.xml import params
@@ -18,12 +17,10 @@ from ovirtsdk.xml import params
 class OvirtBackup:
     """Class for export and import Virtual Machine in oVirt/RHEV environment"""
 
-    def __init__(self, url, user, password, virtual_machine=None, export_path=None):
+    def __init__(self, url, user, password):
         self.url = url
         self.user = user
         self.password = password
-        self.virtual = virtual_machine
-        self.export_path = export_path
 
     def print_info(self):
         print(self.url)
@@ -439,14 +436,6 @@ class OvirtBackup:
         except:
             pass
 
-    def delete_local_folder(self, path):
-        try:
-            shutil.rmtree(path)
-            return 1
-        except OSError as err:
-            self.log_event(vm=self.virtual, msg=err, severity='error')
-            return 0
-
     def clean_dir(self, path, vm):
         pattern = vm + '-\d*|' + vm
         try:
@@ -458,7 +447,7 @@ class OvirtBackup:
                         self.log_event(vm=vm, msg="delete old backup " + folder, severity='info')
             return 1
         except OSError as err:
-            self.log_event(vm=self.virtual, msg=err, severity='error')
+            self.log_event(vm=vm, msg=err, severity='error')
             return 0
 
     def verify_path(self, path):
