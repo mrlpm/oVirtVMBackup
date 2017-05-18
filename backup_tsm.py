@@ -111,7 +111,9 @@ def export(conn, vm_name, new_name, description, export_domain):
                 conn.save_new_ovf(path=vms_path_save, name=ovf_final, xml=xml_obj)
                 conn.delete_tmp_ovf(path=path_export + vm_name + "/running-" + ovf_final)
                 log_all(conn,vm_name,"Backup VM keep original configuration successful",'normal')
-                rename_clone(export_xml, vms_path_save + conn.api.vms.get(vm_name).id + "/" + ovf_final, path_export + vm_name + images_path)
+                #rename_clone(export_xml, vms_path_save + conn.api.vms.get(vm_name).id + "/" + ovf_final, path_export + vm_name + images_path)
+                conn.move_images(vms_path_save + conn.api.vms.get(vm_name).id + "/" + ovf_final, export_xml,
+                             path_export + vm_name + images_path)
                 print("Move successful")
             except Exception as exit_code:
                 log_all(conn,vm_name,"Backup VM preparing failed ",'error')

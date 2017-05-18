@@ -295,7 +295,7 @@ class OvirtBackup:
 
     def mv_data(self, new_name, export, source, destination, stid):
         self.dest = export + new_name + destination
-        os.chdir(export + stid + destination) #cambiando a /exportdomain/UUID/{master/vms, images}
+        os.chdir(export + stid + destination) # cambiando a /exportdomain/UUID/{master/vms, images}
         shutil.move(source, self.dest)
 
     def do_mv(self, vm, export_path, images, vms):
@@ -681,6 +681,42 @@ class OvirtBackup:
         #            print(parent.getElementsByTagName("rasd:InstanceId")[0].toprettyxml())
 
         #            print(parent.getElementsByTagName("rasd:HostResource")[0].firstChild.data)
+
+    def move_images(self, running_ovf, export_ovf, path_images):
+        """
+        Move disks from export directories to New VM Directory
+        @param running_ovf: Absolute path for running.ovf
+        @param export_ovf: Absolute path for export.ovf
+        @param path_images: Absolute path for images New VM Directory
+        @return: None
+        """
+        if self.verify_alias_disk(running_ovf=running_ovf, export_ovf=export_ovf):
+            print(running_ovf)
+            print(export_ovf)
+            run_data, export_data = self.order_disks(running_ovf=running_ovf, export_ovf=export_ovf)
+            for key in export_data:
+                if key in run_data:
+                    # Export Section
+                    path_export = os.path.join(os.path.dirname(export_ovf), path_images)
+                    abs_export_path = path_export + "/" + export_data[key][0]
+                    abs_export_image_path = os.path.join(abs_export_path, export_data[key][1])
+                    abs_export_meta_path = abs_export_image_path + ".meta"
+                    # Run Section
+                    path_run = os.path.join(os.path.dirname(running_ovf), path_images)
+                    abs_run_path = path_run + "/" + run_data[key][0]
+                    abs_run_image_path = os.path.join(abs_run_path, run_data[key][1])
+                    abs_run_meta_path = abs_run_image_path + ".meta"
+                    # Operations
+                    print("{} {} --> {} {}".format(key, abs_export_image_path, key, abs_run_image_path))
+                    # os.mkdir(abs_export_path)
+                    os.mkdir(abs_run_path)
+                    shutil.move(abs_export_image_path, abs_run_image_path)
+                    shutil.move(abs_export_meta_path, abs_run_meta_path)
+                    shutil.rmtree(abs_export_path)
+            shutil.rmtree(os.path.dirname(export_ovf))
+        else:
+            print("stop")
+            exit(30)
 
 class Spinner:
     """
