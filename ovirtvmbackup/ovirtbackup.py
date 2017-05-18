@@ -691,8 +691,6 @@ class OvirtBackup:
         @return: None
         """
         if self.verify_alias_disk(running_ovf=running_ovf, export_ovf=export_ovf):
-            print(running_ovf)
-            print(export_ovf)
             run_data, export_data = self.order_disks(running_ovf=running_ovf, export_ovf=export_ovf)
             for key in export_data:
                 if key in run_data:
