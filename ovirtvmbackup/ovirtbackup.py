@@ -281,12 +281,16 @@ class OvirtBackup:
         elif self.export_attached is None:
             self.attach_export(dc.id, export_name)
 
-        # Seccion de funciones para movimiento de archivos
+# Seccion de funciones para movimiento de archivos
 
     def create_dirs(self, vm_name, export_path, images, vms):
         try:
-            os.makedirs(export_path + vm_name + vms)
-            os.makedirs(export_path + vm_name + images)
+            images = images.strip("/")
+            vms = vms.strip("/")
+            self.new_images_path = os.path.join(export_path, vm_name, images)
+            self.new_vms_path = os.path.join(export_path, vm_name, vms)
+            os.makedirs(self.new_vms_path)
+            os.makedirs(self.new_images_path)
         except OSError as e:
             print(e)
             raise Exception(15)
@@ -294,7 +298,7 @@ class OvirtBackup:
 
     def mv_data(self, new_name, export, source, destination, stid):
         self.dest = export + new_name + destination
-        os.chdir(export + stid + destination)
+        os.chdir(export + stid + destination) #cambiando a /exportdomain/UUID/{master/vms, images}
         shutil.move(source, self.dest)
 
     def do_mv(self, vm, export_path, images, vms):
