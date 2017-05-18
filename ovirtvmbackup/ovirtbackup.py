@@ -653,6 +653,12 @@ class OvirtBackup:
         return True
 
     def order_disks(self, running_ovf, export_ovf):
+        """
+        Parse xml files and find tag <Alias> and sort in two dictionaries
+        @param running_ovf: Absolute path for running.ovf
+        @param export_ovf: Absolute path for export.ovf
+        @return: Two dictionaries with disks sorted
+        """
         running_data = dict()
         export_data = dict()
         for filename in running_ovf, export_ovf:
@@ -696,3 +702,4 @@ class Spinner:
 
 if __name__ == '__main__':
     print("This file is intended to be used as a library of functions and it's not expected to be executed directly")
+    exit(1)
