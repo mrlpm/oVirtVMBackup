@@ -628,6 +628,60 @@ class OvirtBackup:
                         'Trying to Attach Domain "{}" to {}'.format(export_backup.get_name(), vm_datacenter.get_name()))
                     self.attach_export(dc_id=vm_datacenter.id, export=export_backup.get_name())
 
+# disks Logic
+    def get_item_tag(self, filename):
+        """
+        Recibe el nombre de archivo con ruta absoluta
+        @param filename: nombre de archivo con ruta absoluta 
+        @return: parents array with parent nodes
+        """
+        parents = list()
+        with codecs.open(filename, "r", "utf-8") as inp:
+            xml_doc = minidom.parseString(inp.read().encode("utf-8"))
+            for device in xml_doc.getElementsByTagName("Device"):
+                if device.firstChild.nodeValue == "disk":
+                    parent = device.parentNode
+                    parents.append(parent)
+        return parents
+
+    def verify_alias_disk(self, running_ovf, export_ovf):
+        """
+        Verify if absence of Alias in ovf
+        @param running_ovf: Absolute path of ovf file running virtual machine 
+        @param export_ovf: Absolute path of ovf file export virtual machine
+        @return: False if absence Alias or True if Alias exists
+        """
+        for filename in running_ovf, export_ovf:
+            parents = self.get_item_tag(filename=filename)
+            for parent in parents:
+                if not parent.getElementsByTagName("Alias")[0].hasChildNodes():
+                    print(filename)
+                    return False
+        return True
+
+    def order_disks(self, running_ovf, export_ovf):
+        running_data = dict()
+        export_data = dict()
+        for filename in running_ovf, export_ovf:
+            parents = self.get_item_tag(filename=filename)
+            for parent in parents:
+                data = list()
+                alias = parent.getElementsByTagName("Alias")[0].firstChild.data
+                directory, image = parent.getElementsByTagName("rasd:HostResource")[0].firstChild.data.split("/")
+                data.extend((directory, image))
+                #            print("Alias: {}".format(alias))
+                #            print("Directory: {} Image: {}".format(directory, image))
+                if filename == running_ovf:
+                    running_data[alias] = data[:]
+                    del data[:]
+                if filename == export_ovf:
+                    export_data[alias] = data[:]
+                    del data[:]
+        return running_data, export_data
+        #            print(parent.getElementsByTagName("rasd:Caption")[0].toxml())
+        #            print(parent.getElementsByTagName("rasd:InstanceId")[0].toprettyxml())
+
+        #            print(parent.getElementsByTagName("rasd:HostResource")[0].firstChild.data)
 
 class Spinner:
     """Class for implement Spinner in other process"""
