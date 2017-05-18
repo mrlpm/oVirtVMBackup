@@ -683,19 +683,28 @@ class OvirtBackup:
         #            print(parent.getElementsByTagName("rasd:HostResource")[0].firstChild.data)
 
 class Spinner:
-    """Class for implement Spinner in other process"""
+    """
+    Class for implement Spinner in other process
+    """
 
     def __init__(self):
         self.spinner = itertools.cycle(['-', '/', '|', '\\'])
 
     def update(self):
-        """Update the icon for spinner"""
+        """
+        Update the icon for spinner
+        @return: None
+        """
         sys.stdout.write(self.spinner.next())
         sys.stdout.flush()
         sys.stdout.write('\b')
         time.sleep(0.3)
 
     def clear(self):
+        """
+        Flush stdout for spinner
+        @return: None
+        """
         sys.stdout.write("\033[?25h")
         sys.stdout.flush()
 
