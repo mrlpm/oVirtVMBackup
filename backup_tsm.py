@@ -83,7 +83,7 @@ def export(conn, vm_name, new_name, description, export_domain):
             log_all(conn,vm_name,"Export Virtual Machine {}".format(new_name),'normal')
             try:
                 export_dom = conn.get_export_domain(vm=vm_name)
-                conn.export_vm(new_name, export_dom, 'False')
+                conn.export_vm(new_name, export_dom, 'True')
                 log_all(conn,vm_name,"Export Virtual Machine {} successful".format(export_domain),'normal')
             except Exception as exit_code:
                 log_all(conn,vm_name,"Export Virtual Machine failed ",'error')
