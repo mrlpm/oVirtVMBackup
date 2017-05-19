@@ -691,31 +691,31 @@ class OvirtBackup:
         @param path_images: Absolute path for images New VM Directory
         @return: None
         """
-        if self.verify_alias_disk(running_ovf=running_ovf, export_ovf=export_ovf):
-            run_data, export_data = self.order_disks(running_ovf=running_ovf, export_ovf=export_ovf)
-            for key in export_data:
-                if key in run_data:
-                    # Export Section
-                    path_export = os.path.join(os.path.dirname(export_ovf), path_images)
-                    abs_export_path = path_export + "/" + export_data[key][0]
-                    abs_export_image_path = os.path.join(abs_export_path, export_data[key][1])
-                    abs_export_meta_path = abs_export_image_path + ".meta"
-                    # Run Section
-                    path_run = os.path.join(os.path.dirname(running_ovf), path_images)
-                    abs_run_path = path_run + "/" + run_data[key][0]
-                    abs_run_image_path = os.path.join(abs_run_path, run_data[key][1])
-                    abs_run_meta_path = abs_run_image_path + ".meta"
-                    # Operations
-                    print("{} {} --> {} {}".format(key, abs_export_image_path, key, abs_run_image_path))
-                    # os.mkdir(abs_export_path)
-                    os.mkdir(abs_run_path)
-                    shutil.move(abs_export_image_path, abs_run_image_path)
-                    shutil.move(abs_export_meta_path, abs_run_meta_path)
-                    shutil.rmtree(abs_export_path)
-            shutil.rmtree(os.path.dirname(export_ovf))
-        else:
-            print("stop")
-            exit(30)
+#        if self.verify_alias_disk(running_ovf=running_ovf, export_ovf=export_ovf):
+        run_data, export_data = self.order_disks(running_ovf=running_ovf, export_ovf=export_ovf)
+        for key in export_data:
+            if key in run_data:
+                # Export Section
+                path_export = os.path.join(os.path.dirname(export_ovf), path_images)
+                abs_export_path = path_export + "/" + export_data[key][0]
+                abs_export_image_path = os.path.join(abs_export_path, export_data[key][1])
+                abs_export_meta_path = abs_export_image_path + ".meta"
+                # Run Section
+                path_run = os.path.join(os.path.dirname(running_ovf), path_images)
+                abs_run_path = path_run + "/" + run_data[key][0]
+                abs_run_image_path = os.path.join(abs_run_path, run_data[key][1])
+                abs_run_meta_path = abs_run_image_path + ".meta"
+                # Operations
+                # print("{} {} --> {} {}".format(key, abs_export_image_path, key, abs_run_image_path))
+                # os.mkdir(abs_export_path)
+                os.mkdir(abs_run_path)
+                shutil.move(abs_export_image_path, abs_run_image_path)
+                shutil.move(abs_export_meta_path, abs_run_meta_path)
+                shutil.rmtree(abs_export_path)
+        shutil.rmtree(os.path.dirname(export_ovf))
+#        else:
+#            print("stop")
+#            exit(30)
 
 class Spinner:
     """
