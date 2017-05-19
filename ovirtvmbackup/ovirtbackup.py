@@ -53,7 +53,8 @@ class OvirtBackup:
             self.api.vms.get(vm).snapshots.add(
                 params.Snapshot(
                     description=desc,
-                    vm=self.api.vms.get(vm)
+                    vm=self.api.vms.get(vm),
+                    persist_memorystate=False
                 )
             )
             self.snapshot = self.api.vms.get(vm).snapshots.list(description=desc)[0]
