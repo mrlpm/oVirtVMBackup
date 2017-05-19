@@ -94,27 +94,32 @@ def export(conn, vm_name, new_name, description, export_domain):
             try:
                 conn.create_dirs(vm_name=vm_name, export_path=path_export, images=images_path, vms=vms_path)
                 conn.do_mv(vm=new_name, export_path=path_export, images=images_path, vms=vms_path)
+                conn.get_running_ovf(vm=vm_name, desc=description, path=path_export)
             except Exception as exit_code:
                 log_all(conn,vm_name,"Backup VM preparing failed ",'error')
                 log_all(conn,vm_name, "Backup VM '" + vm_name + "' Failed [exit-code:"+str(exit_code.args[0])+"]","error")
                 exit(exit_code)
-            # trabajado con ovf's
-            log_all(conn,vm_name,"Backup VM keeping '"+vm_name+"' original configuration","normal")
-            print("Change id's and paths")
             try:
-                conn.get_running_ovf(vm=vm_name, desc=description, path=path_export)
-                export_xml = conn.export_xml_path(path=path_export, vm=vm_name, find_path=vms_path)
                 original_xml = conn.export_xml_path(path=path_export, vm=vm_name)
-                xml_obj = conn.add_storage_id_xml(original_xml, export_xml)
-                ovf_final = os.path.basename(original_xml)[8:]
-                vms_path_save = path_export + vm_name + vms_path
-                conn.save_new_ovf(path=vms_path_save, name=ovf_final, xml=xml_obj)
-                conn.delete_tmp_ovf(path=path_export + vm_name + "/running-" + ovf_final)
-                log_all(conn,vm_name,"Backup VM keep original configuration successful",'normal')
-                #rename_clone(export_xml, vms_path_save + conn.api.vms.get(vm_name).id + "/" + ovf_final, path_export + vm_name + images_path)
-                conn.move_images(vms_path_save + conn.api.vms.get(vm_name).id + "/" + ovf_final, export_xml,
-                             path_export + vm_name + images_path)
-                print("Move successful")
+                export_xml = conn.export_xml_path(path=path_export, vm=vm_name, find_path=vms_path)
+                if conn.verify_alias_disk(running_ovf=original_xml, export_ovf=export_xml):
+                    # trabajado con ovf's
+                    log_all(conn, vm_name, "Backup VM keeping '" + vm_name + "' original configuration", "normal")
+                    print("Change id's and paths")
+                    #conn.get_running_ovf(vm=vm_name, desc=description, path=path_export)
+                    xml_obj = conn.add_storage_id_xml(original_xml, export_xml)
+                    ovf_final = os.path.basename(original_xml)[8:]
+                    vms_path_save = path_export + vm_name + vms_path
+                    conn.save_new_ovf(path=vms_path_save, name=ovf_final, xml=xml_obj)
+                    conn.delete_tmp_ovf(path=path_export + vm_name + "/running-" + ovf_final)
+                    log_all(conn,vm_name,"Backup VM keep original configuration successful",'normal')
+                    #rename_clone(export_xml, vms_path_save + conn.api.vms.get(vm_name).id + "/" + ovf_final, path_export + vm_name + images_path)
+                    conn.move_images(vms_path_save + conn.api.vms.get(vm_name).id + "/" + ovf_final, export_xml,
+                                 path_export + vm_name + images_path)
+                    print("Move successful")
+                else:
+                    log_all(conn, vm_name, "Backup VM keeping '" + vm_name + "' original configuration", "error")
+                    log_all(conn, vm_name, "Failback to Clone mode", "normal")
             except Exception as exit_code:
                 log_all(conn,vm_name,"Backup VM preparing failed ",'error')
                 log_all(conn,vm_name, "Backup VM '" + vm_name + "' Failed [exit-code:"+str(exit_code.args[0])+"]","error")
