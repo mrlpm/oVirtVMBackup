@@ -165,7 +165,6 @@ class OvirtBackup:
         except Exception as e:
             print(e.message)
             raise Exception(18)
-            return 0
 
     def export_vm(self, new_name, export, collapse):
         try:
