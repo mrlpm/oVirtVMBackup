@@ -7,16 +7,11 @@ import datetime
 
 from ovirtvmbackup import OvirtBackup
 import sys
-import configargparse
+import ConfigParser
 import subprocess
 import shutil
 
-parse = configargparse.ArgParser(default_config_files=['/etc/ovirt-vm-backup/ovirt-vm-backup.conf'])
-parse.add('-c', '--config', is_config_file=True, help='config file path')
-parse.add('--retry-clean', help='number of retry to delete temporary snapshot and vms')
-parse.add('vmname', nargs='+', help='name[s] of virtual machines')
-
-#config_file='/etc/ovirt-vm-backup/ovirt-vm-backup.conf'
+config_file='/etc/ovirt-vm-backup/ovirt-vm-backup.conf'
 vms_path = "/master/vms/"
 images_path = "/images/"
 
