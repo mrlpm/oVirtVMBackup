@@ -139,7 +139,7 @@ def export(conn, vm_name, new_name, description, export_domain):
             except Exception as exit_code:
                 log_all(conn,vm_name,"Remove temporary snapshot failed",'failed')
                 log_all(conn,vm_name, "Backup VM '" + vm_name + "' Failed [exit-code:"+str(exit_code.args[0])+"]","error")
-                exit(exit_code)
+                #exit(exit_code)
             #print("process finished successful")
             try:
                 conn.change_dirname(path=path_export, vm=vm_name, timestamp=timestamp)
