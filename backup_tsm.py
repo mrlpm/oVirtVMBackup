@@ -11,9 +11,21 @@ import ConfigParser
 import subprocess
 import shutil
 
+def load_config(path):
+    config = ConfigParser.ConfigParser()
+    config.read(path)
+    return dict(config.items("general"))
+
 config_file='/etc/ovirt-vm-backup/ovirt-vm-backup.conf'
 vms_path = "/master/vms/"
 images_path = "/images/"
+
+general = load_config(config_file)
+path_export = general['exportpath']
+timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M")
+dsmc = general['dsmc']
+retry_clean = general['retry']
+url = "https://" + general['manager']
 
 def log_tsm(vmname,tsmuser,tsmpass,message,level):
     if level == 'normal':
@@ -190,11 +202,6 @@ def vm_import(name):
 def du(path):
   return subprocess.check_output(['du','-sh', path]).split()[0].decode('utf-8')
 
-def load_config(path):
-    config = ConfigParser.ConfigParser()
-    config.read(path)
-    return dict(config.items("general"))
-
 def change_meta(path):
     for image in os.listdir(path):
         image_id=image
@@ -204,7 +211,6 @@ def change_meta(path):
 
 def upload_tsm(path,vmname):
     date=datetime.datetime.now().strftime("%Y/%m/%d")
-    #date=time.strftime("%m/%d/%y", time.gmtime())
     output=[]
     command=subprocess.check_output(['sudo','dsmc','archive',path+'/','-subdir=yes','-description=\'VMDate: '+date+' VMName:'+vmname+'\''],cwd='/tmp') 
     for line in command.split('\n'):
@@ -232,17 +238,8 @@ def main():
             sys.exit(2)
         for vmname in sys.argv[1:]:
             print("Backup for vm {}".format(vmname))
-            general = load_config(config_file)
-            global path_export
-            global dsmc
-            global timestamp
-            path_export = general['exportpath']
-            timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M")
-            dsmc = general['dsmc']
-
             new_name = vmname + '-SNAP'
             description = "oVirtBackup"
-            url = "https://" + general['manager']
             print(description)
             is_export = True
             oVirt = OvirtBackup(url, general['api_user'], general['api_pass'])
