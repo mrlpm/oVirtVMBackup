@@ -10,6 +10,7 @@ import sys
 import ConfigParser
 import subprocess
 import shutil
+from time import sleep
 
 def load_config(path):
     config = ConfigParser.ConfigParser()
@@ -26,6 +27,7 @@ timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M")
 dsmc = general['dsmc']
 retry_clean = general['retry']
 url = "https://" + general['manager']
+fail_del_snap = 0
 
 def log_tsm(vmname,tsmuser,tsmpass,message,level):
     if level == 'normal':
@@ -37,9 +39,19 @@ def log_tsm(vmname,tsmuser,tsmpass,message,level):
     except:
         pass
 
+def delete_snapshot(conn, vm_name, description):
+    try:
+        conn.delete_snap(vm=vm_name, desc=description)
+        log_all(conn, vm_name, "Remove temporary snapshot sucessfull", 'normal')
+        fail_del_snap = 0
+    except Exception as exit_code:
+        log_all(conn, vm_name, "Remove temporary snapshot failed", 'failed')
+        log_all(conn, vm_name, "Backup VM '" + vm_name + "' Failed [exit-code:" + str(exit_code.args[0]) + "]", "error")
+        fail_del_snap = 1
+
 
 def log_all(conn,vmname,message,level):
-    general = load_config(config_file)
+    #general = load_config(config_file)
     message = timestamp + " " + message
     conn.log_event(vmname,message+' ('+vmname+')',level)
     date=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -151,6 +163,7 @@ def export(conn, vm_name, new_name, description, export_domain):
             except Exception as exit_code:
                 log_all(conn,vm_name,"Remove temporary snapshot failed",'failed')
                 log_all(conn,vm_name, "Backup VM '" + vm_name + "' Failed [exit-code:"+str(exit_code.args[0])+"]","error")
+                fail_del_snap = 1
                 #exit(exit_code)
             #print("process finished successful")
             try:
@@ -271,6 +284,11 @@ def main():
                 command = upload_tsm(path_export + vmname + "-" + timestamp, vmname)
                 log_all(oVirt,vmname, 'Uploading VM ' + vmname + ' to TSM has been completed ' + command + '.',
                                 'normal')
+                if fail_del_snap:
+                    for i in retry_clean:
+                        print("retry {}".format(i))
+                else:
+                    print("delete snap OK")
             except subprocess.CalledProcessError as e:
                 tempdir = path_export + vmname + '-' + timestamp
                 log_all(oVirt,vmname,
@@ -279,6 +297,12 @@ def main():
                 log_all(oVirt,vmname, 'Uploading VM ' + vmname + ' to TSM has failed and moved to ' + tempdir,
                                 'error')
                 log_all(oVirt,vmname, "Backup VM '" + vmname + "' Failed [exit-code:6]","error")
+                if fail_del_snap:
+                    for i in retry_clean:
+                        print("retry {}".format(i))
+                        sleep(30)
+                else:
+                    print("delete snap OK")
                 exit(6)
             try:
                 remove_temp(path_export + vmname + "-" + timestamp)
