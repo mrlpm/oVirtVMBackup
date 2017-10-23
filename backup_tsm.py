@@ -157,15 +157,16 @@ def export(conn, vm_name, new_name, description, export_domain):
                 log_all(conn,vm_name,"Remove temporary Virtual Machine failed",'failed')
                 log_all(conn,vm_name, "Backup VM '" + vm_name + "' Failed [exit-code:"+str(exit_code.args[0])+"]","error")
                 exit(exit_code)
-            try:
-                conn.delete_snap(vm=vm_name, desc=description)
-                log_all(conn,vm_name,"Remove temporary snapshot sucessfull",'normal')
-            except Exception as exit_code:
-                log_all(conn,vm_name,"Remove temporary snapshot failed",'failed')
-                log_all(conn,vm_name, "Backup VM '" + vm_name + "' Failed [exit-code:"+str(exit_code.args[0])+"]","error")
+#            try:
+#                conn.delete_snap(vm=vm_name, desc=description)
+#                log_all(conn,vm_name,"Remove temporary snapshot sucessfull",'normal')
+#            except Exception as exit_code:
+#                log_all(conn,vm_name,"Remove temporary snapshot failed",'failed')
+#                log_all(conn,vm_name, "Backup VM '" + vm_name + "' Failed [exit-code:"+str(exit_code.args[0])+"]","error")
                 fail_del_snap = 1
                 #exit(exit_code)
             #print("process finished successful")
+            delete_snapshot(conn=conn,vm_name=vm_name,description=description)
             try:
                 conn.change_dirname(path=path_export, vm=vm_name, timestamp=timestamp)
                 log_all(conn,vm_name,"Backup VM '"+vm_name+"' ready for storage","normal")
