@@ -62,7 +62,6 @@ class OvirtBackup:
         except RequestError as err:
             print("CREATE SNAP Error: {} Reason: {}".format(err.status, err.reason))
             raise Exception(12)
-            #exit(12)
 
     def snapshot_status(self, vm, snap_id):
         snapshot = self.api.vms.get(vm).snapshots.get(id=snap_id)
