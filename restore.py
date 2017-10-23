@@ -28,6 +28,12 @@ def args():
 
 
 def get_tsm(path,directory):
+    """
+    Execute dsmc command for Retrieve backup from TSM IBM
+    @param path: url where store restore files
+    @param directory: name of store backup
+    @return: 1 if OK
+    """
     try:
         check_output(["sudo", "dsmc", "retrieve", os.path.join(path, directory) + "/", "-subdir=yes"])
         return 1
