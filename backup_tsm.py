@@ -9,7 +9,6 @@ from ovirtvmbackup import OvirtBackup
 import sys
 import subprocess
 import shutil
-from time import sleep
 
 config_file = "/etc/ovirt-vm-backup/ovirt-vm-backup.conf"
 vms_path = "/master/vms/"
@@ -169,7 +168,7 @@ def export(conn, vm_name, new_name, description, export_domain):
 #            except Exception as exit_code:
 #                log_all(conn,vm_name,"Remove temporary snapshot failed",'failed')
 #                log_all(conn,vm_name, "Backup VM '" + vm_name + "' Failed [exit-code:"+str(exit_code.args[0])+"]","error")
-                fail_del_snap = 1
+#                fail_del_snap = 1
                 #exit(exit_code)
             #print("process finished successful")
             delete_snapshot(conn=conn,vm_name=vm_name,description=description)
@@ -293,9 +292,11 @@ def main():
                                 'normal')
                 if fail_del_snap:
                     for i in retry_clean:
-                        print("retry {}".format(i))
+                        log_all(oVirt, vmname, 'retry # ' + i, 'normal')
+                        delete_snapshot(conn=oVirt, vm_name=vmname, description=description)
+                    log_all(oVirt, vmname, 'Error in snapshot delete', 'error')
                 else:
-                    print("delete snap OK")
+                    log_all(oVirt, vmname, 'Snapshot delete OK', 'error')
             except subprocess.CalledProcessError as e:
                 tempdir = path_export + vmname + '-' + timestamp
                 log_all(oVirt,vmname,
@@ -306,10 +307,11 @@ def main():
                 log_all(oVirt,vmname, "Backup VM '" + vmname + "' Failed [exit-code:6]","error")
                 if fail_del_snap:
                     for i in retry_clean:
-                        print("retry {}".format(i))
-                        sleep(30)
+                        log_all(oVirt, vmname, 'retry # ' + i, 'normal')
+                        delete_snapshot(conn=oVirt, vm_name=vmname, description=description)
+                    log_all(oVirt, vmname, 'Error in snapshot delete', 'error')
                 else:
-                    print("delete snap OK")
+                    log_all(oVirt, vmname, 'Snapshot delete OK', 'error')
                 exit(6)
             try:
                 remove_temp(path_export + vmname + "-" + timestamp)
