@@ -7,19 +7,24 @@ import datetime
 
 from ovirtvmbackup import OvirtBackup
 import sys
-import ConfigParser
 import subprocess
 import shutil
 from time import sleep
 
-def load_config(path):
-    config = ConfigParser.ConfigParser()
-    config.read(path)
-    return dict(config.items("general"))
-
-config_file='/etc/ovirt-vm-backup/ovirt-vm-backup.conf'
+config_file = "/etc/ovirt-vm-backup/ovirt-vm-backup.conf"
 vms_path = "/master/vms/"
 images_path = "/images/"
+
+
+def load_config(config_path):
+    import ConfigParser
+    try:
+        config = ConfigParser.ConfigParser()
+        config.read(config_path)
+        return dict(config.items("general"))
+    except Exception as error_config:
+        print(error_config.message)
+
 
 general = load_config(config_file)
 path_export = general['exportpath']
@@ -29,12 +34,13 @@ retry_clean = general['retry']
 url = "https://" + general['manager']
 fail_del_snap = 0
 
-def log_tsm(vmname,tsmuser,tsmpass,message,level):
+
+def log_tsm(vmname, tsmuser, tsmpass, message, level):
     if level == 'normal':
         level = 'I'
     if level == 'error':
         level = 'E'
-    try:    
+    try:
         subprocess.check_output(['sudo','/usr/bin/dsmadmc', '-id='+tsmuser, '-pa='+tsmpass, 'issue message '+level+' "'+message+' ('+vmname+')"','cwd=/tmp/'])
     except:
         pass
