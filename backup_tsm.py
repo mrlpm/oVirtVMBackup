@@ -9,7 +9,9 @@ from ovirtvmbackup import OvirtBackup
 import sys
 import subprocess
 import shutil
+import time
 
+fail_del_snap = False
 config_file = "/etc/ovirt-vm-backup/ovirt-vm-backup.conf"
 vms_path = "/master/vms/"
 images_path = "/images/"
@@ -31,7 +33,6 @@ timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M")
 dsmc = general['dsmc']
 retry_clean = general['retry']
 url = "https://" + general['manager']
-fail_del_snap = 0
 
 
 def log_tsm(vmname, tsmuser, tsmpass, message, level):
@@ -48,11 +49,10 @@ def delete_snapshot(conn, vm_name, description):
     try:
         conn.delete_snap(vm=vm_name, desc=description)
         log_all(conn, vm_name, "Remove temporary snapshot sucessfull", 'normal')
-        fail_del_snap = 0
     except Exception as exit_code:
-        log_all(conn, vm_name, "Remove temporary snapshot failed", 'failed')
-        log_all(conn, vm_name, "Backup VM '" + vm_name + "' Failed [exit-code:" + str(exit_code.args[0]) + "]", "error")
-        fail_del_snap = 1
+        log_all(conn, vm_name, "Remove temporary snapshot failed", 'error')
+#       log_all(conn, vm_name, "Backup VM '" + vm_name + "' Failed [exit-code:" + str(exit_code.args[0]) + "]", "error")
+        return True
 
 
 def log_all(conn,vmname,message,level):
@@ -67,6 +67,7 @@ def log_all(conn,vmname,message,level):
     log_tsm(vmname,general['tsm_user'],general['tsm_pass'],message,level)
 
 def export(conn, vm_name, new_name, description, export_domain):
+    global fail_del_snap
     print("Export virtual machine {}".format(vm_name))
 
     if (conn.if_exists_vm(vm=vm_name)):
@@ -162,16 +163,7 @@ def export(conn, vm_name, new_name, description, export_domain):
                 log_all(conn,vm_name,"Remove temporary Virtual Machine failed",'failed')
                 log_all(conn,vm_name, "Backup VM '" + vm_name + "' Failed [exit-code:"+str(exit_code.args[0])+"]","error")
                 exit(exit_code)
-#            try:
-#                conn.delete_snap(vm=vm_name, desc=description)
-#                log_all(conn,vm_name,"Remove temporary snapshot sucessfull",'normal')
-#            except Exception as exit_code:
-#                log_all(conn,vm_name,"Remove temporary snapshot failed",'failed')
-#                log_all(conn,vm_name, "Backup VM '" + vm_name + "' Failed [exit-code:"+str(exit_code.args[0])+"]","error")
-#                fail_del_snap = 1
-                #exit(exit_code)
-            #print("process finished successful")
-            delete_snapshot(conn=conn,vm_name=vm_name,description=description)
+            fail_del_snap = delete_snapshot(conn=conn,vm_name=vm_name,description=description)
             try:
                 conn.change_dirname(path=path_export, vm=vm_name, timestamp=timestamp)
                 log_all(conn,vm_name,"Backup VM '"+vm_name+"' ready for storage","normal")
@@ -251,6 +243,7 @@ def usage():
     
 
 def main():
+    global fail_del_snap
     if (len(sys.argv) > 1):
         if not (os.path.isfile(config_file)):
             print("No configuration file found")
@@ -290,13 +283,13 @@ def main():
                 command = upload_tsm(path_export + vmname + "-" + timestamp, vmname)
                 log_all(oVirt,vmname, 'Uploading VM ' + vmname + ' to TSM has been completed ' + command + '.',
                                 'normal')
-                if fail_del_snap:
-                    for i in retry_clean:
-                        log_all(oVirt, vmname, 'retry # ' + i, 'normal')
-                        delete_snapshot(conn=oVirt, vm_name=vmname, description=description)
-                    log_all(oVirt, vmname, 'Error in snapshot delete', 'error')
-                else:
-                    log_all(oVirt, vmname, 'Snapshot delete OK', 'error')
+                for i in xrange(int(retry_clean)):
+                    if fail_del_snap:
+                        log_all(oVirt, vmname, 'retry # ' + str(i), 'normal')
+                        fail_del_snap = delete_snapshot(conn=oVirt, vm_name=vmname, description=description)
+                    else:
+                        log_all(oVirt, vmname, 'Snapshot delete OK', 'normal')
+                    time.sleep(60)
             except subprocess.CalledProcessError as e:
                 tempdir = path_export + vmname + '-' + timestamp
                 log_all(oVirt,vmname,
@@ -305,13 +298,13 @@ def main():
                 log_all(oVirt,vmname, 'Uploading VM ' + vmname + ' to TSM has failed and moved to ' + tempdir,
                                 'error')
                 log_all(oVirt,vmname, "Backup VM '" + vmname + "' Failed [exit-code:6]","error")
-                if fail_del_snap:
-                    for i in retry_clean:
-                        log_all(oVirt, vmname, 'retry # ' + i, 'normal')
-                        delete_snapshot(conn=oVirt, vm_name=vmname, description=description)
-                    log_all(oVirt, vmname, 'Error in snapshot delete', 'error')
-                else:
-                    log_all(oVirt, vmname, 'Snapshot delete OK', 'error')
+                for i in xrange(int(retry_clean)):
+                    if fail_del_snap:
+                        log_all(oVirt, vmname, 'retry # ' + str(i), 'normal')
+                        fail_del_snap = delete_snapshot(conn=oVirt, vm_name=vmname, description=description)
+                    else:
+                        log_all(oVirt, vmname, 'Snapshot delete OK', 'normal')
+                    time.sleep(60)
                 exit(6)
             try:
                 remove_temp(path_export + vmname + "-" + timestamp)
