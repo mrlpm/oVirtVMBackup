@@ -51,12 +51,10 @@ def delete_snapshot(conn, vm_name, description):
         log_all(conn, vm_name, "Remove temporary snapshot sucessfull", 'normal')
     except Exception as exit_code:
         log_all(conn, vm_name, "Remove temporary snapshot failed", 'error')
-#       log_all(conn, vm_name, "Backup VM '" + vm_name + "' Failed [exit-code:" + str(exit_code.args[0]) + "]", "error")
         return True
 
 
 def log_all(conn,vmname,message,level):
-    #general = load_config(config_file)
     message = timestamp + " " + message
     conn.log_event(vmname,message+' ('+vmname+')',level)
     date=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -136,14 +134,12 @@ def export(conn, vm_name, new_name, description, export_domain):
                     # trabajado con ovf's
                     log_all(conn, vm_name, "Backup VM keeping '" + vm_name + "' original configuration", "normal")
                     print("Change id's and paths")
-                    #conn.get_running_ovf(vm=vm_name, desc=description, path=path_export)
                     xml_obj = conn.add_storage_id_xml(original_xml, export_xml)
                     ovf_final = os.path.basename(original_xml)[8:]
                     vms_path_save = path_export + vm_name + vms_path
                     conn.save_new_ovf(path=vms_path_save, name=ovf_final, xml=xml_obj)
                     conn.delete_tmp_ovf(path=path_export + vm_name + "/running-" + ovf_final)
                     log_all(conn,vm_name,"Backup VM keep original configuration successful",'normal')
-                    #rename_clone(export_xml, vms_path_save + conn.api.vms.get(vm_name).id + "/" + ovf_final, path_export + vm_name + images_path)
                     conn.move_images(vms_path_save + conn.api.vms.get(vm_name).id + "/" + ovf_final, export_xml,
                                  path_export + vm_name + images_path)
                     print("Move successful")
