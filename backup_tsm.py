@@ -289,8 +289,8 @@ def main():
             except subprocess.CalledProcessError as e:
                 tempdir = path_export + vmname + '-' + timestamp
                 log_all(oVirt,vmname,
-                                'Uploading VM ' + vmname + ' to TSM has failed with exit code: ' + str(e.returncode),
-                                'error')
+                                'Uploading VM ' + vmname + ' to TSM has failed command dsmc exit with code: [' + str(e.returncode),
+                                '] error')
                 log_all(oVirt,vmname, 'Uploading VM ' + vmname + ' to TSM has failed and moved to ' + tempdir,
                                 'error')
                 log_all(oVirt,vmname, "Backup VM '" + vmname + "' Failed [exit-code:6]","error")
