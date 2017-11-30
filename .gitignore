@@ -62,3 +62,6 @@ target/
 .ipynb_checkpoints
 .idea/
 /tests.py
+export_logic.py
+testLogin.py
+xmledit.py
