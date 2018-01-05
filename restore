@@ -7,7 +7,8 @@ import re
 from subprocess import check_call, CalledProcessError, check_output
 
 import configargparse
-import os, shutil
+import os
+import shutil
 
 from xml.dom import minidom
 
@@ -15,7 +16,7 @@ from xml.dom import minidom
 def args():
     p = configargparse.ArgParser(
         default_config_files=['/etc/restore.cfg'],
-        version='1.0'
+        version='0.2'
     )
     p.add_argument('-c', '--config', is_config_file=True, help='config file path')
     p.add_argument('-P', '--path', help='path of export domain')
@@ -27,18 +28,20 @@ def args():
     return export_path, directory
 
 
-def get_tsm(path,directory):
+def get_tsm(path, directory):
     try:
         dsmc = check_output(["sudo", "dsmc", "retrieve", os.path.join(path, directory) + "/", "-subdir=yes"])
         return 0
     except CalledProcessError as error:
         return error.returncode
 
+
 def ovf_get(vm_path):
     for root, dirs, files in os.walk(vm_path):
         for file in files:
             if file.endswith(".ovf"):
                 return os.path.join(root, file), root
+
 
 def parse_xml(xml_path):
     xml_ovf = minidom.parse(xml_path)
@@ -55,6 +58,7 @@ def restore_imgs(disksg, imgs, export_imgs):
         disk_src = os.path.join(imgs, disk)
         print("moving {} to {}".format(disk_src, export_imgs))
         shutil.move(disk_src, export_imgs)
+
 
 def export_path_id(path):
     pattern = '[\w]{8}(-[\w]{4}){3}-[\w]{12}$'
@@ -94,6 +98,7 @@ def main():
         else:
             print("TSM not find {} backup".format(directory))
             exit(1)
+
 
 if __name__ == '__main__':
     main()
