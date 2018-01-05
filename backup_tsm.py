@@ -53,7 +53,7 @@ def delete_snapshot(conn, vm_name, description):
         conn.delete_snap(vm=vm_name, desc=description)
         log_all(conn, vm_name, "Remove temporary snapshot sucessfull", 'normal')
     except Exception as exit_code:
-        log_all(conn, vm_name, "Remove temporary snapshot failed", 'error')
+        log_all(conn, vm_name, "Remove temporary snapshot failed [exit-code:" + str(exit_code.args[0]) + "]", 'error')
         return True
 
 
