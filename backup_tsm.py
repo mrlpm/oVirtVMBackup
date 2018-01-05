@@ -41,7 +41,13 @@ def log_tsm(vmname, tsmuser, tsmpass, message, level):
     if level == 'error':
         level = 'E'
     try:
-        subprocess.check_output(['sudo','/usr/bin/dsmadmc', '-id='+tsmuser, '-pa='+tsmpass, 'issue message '+level+' "'+message+' ('+vmname+')"','cwd=/tmp/'])
+        subprocess.check_output([
+                                    'sudo', '/usr/bin/dsmadmc',
+                                    '-id=' + tsmuser,
+                                    '-pa=' + tsmpass,
+                                    'issue message ' + level + ' "' + message + ' (' + vmname +')"',
+                                    'cwd=/tmp/'
+                                ])
     except:
         pass
 
@@ -249,7 +255,6 @@ def main():
             new_name = vmname + '-SNAP'
             description = "oVirtBackup"
             print(description)
-            is_export = True
             oVirt = OvirtBackup(url, general['api_user'], general['api_pass'])
             print("Trying auth...")
             oVirt.connect()
