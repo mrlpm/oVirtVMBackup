@@ -65,3 +65,5 @@ target/
 export_logic.py
 testLogin.py
 xmledit.py
+*.sublime-project
+*.sublime-workspace
