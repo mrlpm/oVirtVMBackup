@@ -4,7 +4,7 @@
 from __future__ import print_function
 
 import re
-from subprocess import check_call, CalledProcessError, check_output
+from subprocess import CalledProcessError, check_output
 
 import configargparse
 import os
@@ -71,11 +71,9 @@ def export_path_id(path):
 
 def restore(path, directory):
     try:
-        #export_id = "e412a6d5-8d62-4df5-a71c-352c50287a55"
         path_export = export_path_id(path=path)
         imgs = os.path.join(path, directory, "images")
         vms = os.path.join(path, directory, "master", "vms")
-        #export_imgs = os.path.join(path, export_id, "images")
         export_imgs = os.path.join(path_export, "images")
         ovf, dir_vm = ovf_get(vms)
         disksg = parse_xml(ovf)

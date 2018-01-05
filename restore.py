@@ -4,7 +4,7 @@
 from __future__ import print_function
 
 import re
-from subprocess import check_call, CalledProcessError, check_output
+from subprocess import CalledProcessError, check_output
 
 import configargparse
 import os
