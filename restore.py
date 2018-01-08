@@ -1,16 +1,22 @@
 #!/bin/env python
 # -*- coding: utf-8 -*-
-
 from __future__ import print_function
-
 import re
 from subprocess import CalledProcessError, check_output
-
 import configargparse
 import os
 import shutil
-
+import datetime
 from xml.dom import minidom
+import logging
+
+logging.basicConfig(level=logging.DEBUG, filename='restore.log',
+                    format='%(asctime)s %(levelname)s %(message)s', datefmt='%F %T')
+fmt = logging.Formatter('%(asctime)s %(levelname)s %(message)s', datefmt='%F %T')
+stderrLogger = logging.StreamHandler()
+stderrLogger.setFormatter(fmt)
+logging.getLogger().addHandler(stderrLogger)
+timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M")
 
 
 def args():
@@ -35,10 +41,12 @@ def get_tsm(path, directory):
     @param directory: name of store backup
     @return: 1 if OK
     """
+    global timestamp
     try:
         check_output(["sudo", "dsmc", "retrieve", os.path.join(path, directory) + "/", "-subdir=yes"])
         return 1
     except CalledProcessError as error:
+        logging.error('%s dsmc exit with error %s', timestamp, error.returncode)
         return error.returncode
 
 
@@ -62,7 +70,7 @@ def parse_xml(xml_path):
 def restore_imgs(disksg, imgs, export_imgs):
     for disk in disksg:
         disk_src = os.path.join(imgs, disk)
-        print("moving {} to {}".format(disk_src, export_imgs))
+        logging.info('%s moving %s to {} %s', timestamp, disk_src, export_imgs)
         shutil.move(disk_src, export_imgs)
 
 
@@ -87,20 +95,20 @@ def restore(path, directory):
         export_vms = os.path.join(path_export, "master", "vms")
         shutil.move(dir_vm, export_vms)
     except OSError as e:
-        print(e)
+        logging.error('%s dsmc exit with error %s', timestamp, e)
 
 
 def main():
     path, directory = args()
     if not os.path.exists(path):
-        print("path {} doesn't exists".format(path))
+        logging.info('%s path not found', timestamp, path)
     else:
-        print("Get {} from TSM".format(directory))
+        logging.info('%s Get %s from TSM', timestamp, directory)
         if get_tsm(path=path, directory=directory):
             restore(path=path, directory=directory)
             shutil.rmtree(os.path.join(path, directory))
         else:
-            print("TSM not find {} backup".format(directory))
+            logging.info('%s TSM not find %s backup', timestamp, directory)
             exit(1)
 
 
