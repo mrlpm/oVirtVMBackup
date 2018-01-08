@@ -68,6 +68,7 @@ def parse_xml(xml_path):
 
 
 def restore_imgs(disksg, imgs, export_imgs):
+    global timestamp
     for disk in disksg:
         disk_src = os.path.join(imgs, disk)
         logging.info('%s moving %s to {} %s', timestamp, disk_src, export_imgs)
@@ -84,6 +85,7 @@ def export_path_id(path):
 
 
 def restore(path, directory):
+    global timestamp
     try:
         path_export = export_path_id(path=path)
         imgs = os.path.join(path, directory, "images")
@@ -99,6 +101,7 @@ def restore(path, directory):
 
 
 def main():
+    global timestamp
     path, directory = args()
     if not os.path.exists(path):
         logging.info('%s path not found', timestamp, path)
