@@ -2,24 +2,32 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
-
 import re
-from subprocess import check_call, CalledProcessError, check_output
-
+from subprocess import CalledProcessError, check_output
 import configargparse
-import os, shutil
-
+import os
+import shutil
 from xml.dom import minidom
+import logging
+import datetime
+
+logging.basicConfig(level=logging.DEBUG, filename='restore.log',
+                    format='%(asctime)s %(levelname)s %(message)s', datefmt='%F %T')
+fmt = logging.Formatter('%(asctime)s %(levelname)s %(message)s', datefmt='%F %T')
+stderrLogger = logging.StreamHandler()
+stderrLogger.setFormatter(fmt)
+logging.getLogger().addHandler(stderrLogger)
+timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M")
 
 
 def args():
     p = configargparse.ArgParser(
         default_config_files=['/etc/restore.cfg'],
-        version='1.0'
+        version='0.2'
     )
     p.add_argument('-c', '--config', is_config_file=True, help='config file path')
     p.add_argument('-P', '--path', help='path of export domain')
-    p.add_argument('dir', help='name of dir is TSM')
+    p.add_argument('dir', help='name of directory in TSM')
 
     options = p.parse_args()
     directory = options.dir
@@ -27,18 +35,22 @@ def args():
     return export_path, directory
 
 
-def get_tsm(path,directory):
+def get_tsm(path, directory):
+    global timestamp
     try:
         dsmc = check_output(["sudo", "dsmc", "retrieve", os.path.join(path, directory) + "/", "-subdir=yes"])
         return 0
     except CalledProcessError as error:
+        logging.error('%s dsmc exit with error %s', timestamp, error.returncode)
         return error.returncode
+
 
 def ovf_get(vm_path):
     for root, dirs, files in os.walk(vm_path):
         for file in files:
             if file.endswith(".ovf"):
                 return os.path.join(root, file), root
+
 
 def parse_xml(xml_path):
     xml_ovf = minidom.parse(xml_path)
@@ -56,6 +68,7 @@ def restore_imgs(disksg, imgs, export_imgs):
         print("moving {} to {}".format(disk_src, export_imgs))
         shutil.move(disk_src, export_imgs)
 
+
 def export_path_id(path):
     pattern = '[\w]{8}(-[\w]{4}){3}-[\w]{12}$'
     for f in os.listdir(path):
@@ -67,11 +80,10 @@ def export_path_id(path):
 
 def restore(path, directory):
     try:
-        #export_id = "e412a6d5-8d62-4df5-a71c-352c50287a55"
+        global timestamp
         path_export = export_path_id(path=path)
         imgs = os.path.join(path, directory, "images")
         vms = os.path.join(path, directory, "master", "vms")
-        #export_imgs = os.path.join(path, export_id, "images")
         export_imgs = os.path.join(path_export, "images")
         ovf, dir_vm = ovf_get(vms)
         disksg = parse_xml(ovf)
@@ -79,21 +91,23 @@ def restore(path, directory):
         export_vms = os.path.join(path_export, "master", "vms")
         shutil.move(dir_vm, export_vms)
     except OSError as e:
-        print(e)
+        logging.error('%s dsmc exit with error %s', timestamp, e)
 
 
 def main():
+    global timestamp
     path, directory = args()
     if not os.path.exists(path):
-        print("path {} doesn't exists".format(path))
+        logging.info('%s path not found', timestamp, path)
     else:
-        print("Get {} from TSM".format(directory))
+        logging.info('%s Get %s from TSM', timestamp, directory)
         if get_tsm(path=path, directory=directory) == 0:
             restore(path=path, directory=directory)
             shutil.rmtree(os.path.join(path, directory))
         else:
-            print("TSM not find {} backup".format(directory))
+            logging.info('%s TSM not find %s backup', timestamp, directory)
             exit(1)
+
 
 if __name__ == '__main__':
     main()
