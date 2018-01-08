@@ -20,7 +20,7 @@ def args():
     )
     p.add_argument('-c', '--config', is_config_file=True, help='config file path')
     p.add_argument('-P', '--path', help='path of export domain')
-    p.add_argument('dir', help='name of dir is TSM')
+    p.add_argument('dir', help='name of directory in TSM')
 
     options = p.parse_args()
     directory = options.dir
