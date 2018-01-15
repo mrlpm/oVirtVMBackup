@@ -10,7 +10,7 @@ import datetime
 from xml.dom import minidom
 import logging
 
-logging.basicConfig(level=logging.DEBUG, filename='restore.log',
+logging.basicConfig(level=logging.DEBUG, filename='/var/log/ovirt-vm-backup/restore.log',
                     format='%(asctime)s %(levelname)s %(message)s', datefmt='%F %T')
 fmt = logging.Formatter('%(asctime)s %(levelname)s %(message)s', datefmt='%F %T')
 stderrLogger = logging.StreamHandler()
@@ -71,7 +71,7 @@ def restore_imgs(disksg, imgs, export_imgs):
     global timestamp
     for disk in disksg:
         disk_src = os.path.join(imgs, disk)
-        logging.info('%s moving %s to {} %s', timestamp, disk_src, export_imgs)
+        logging.info('%s moving %s to %s', timestamp, disk_src, export_imgs)
         shutil.move(disk_src, export_imgs)
 
 
