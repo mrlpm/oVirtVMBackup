@@ -75,7 +75,7 @@ def restore_imgs(disksg, imgs, export_imgs):
             logging.info('%s moving %s to %s', timestamp, disk_src, export_imgs)
             shutil.move(disk_src, export_imgs)
     except OSError as e:
-        logging.error('%s dsmc exit with error %s', timestamp, e)
+        logging.error('%s an error encountered when moving images: %s', timestamp, e)
 
 
 def export_path_id(path):
