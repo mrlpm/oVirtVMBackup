@@ -69,10 +69,13 @@ def parse_xml(xml_path):
 
 def restore_imgs(disksg, imgs, export_imgs):
     global timestamp
-    for disk in disksg:
-        disk_src = os.path.join(imgs, disk)
-        logging.info('%s moving %s to %s', timestamp, disk_src, export_imgs)
-        shutil.move(disk_src, export_imgs)
+    try:
+        for disk in disksg:
+            disk_src = os.path.join(imgs, disk)
+            logging.info('%s moving %s to %s', timestamp, disk_src, export_imgs)
+            shutil.move(disk_src, export_imgs)
+    except OSError as e:
+        logging.error('%s dsmc exit with error %s', timestamp, e)
 
 
 def export_path_id(path):
