@@ -102,6 +102,7 @@ def restore(path, directory):
         shutil.move(dir_vm, export_vms)
     except OSError as e:
         logging.error('%s restore process failed error: %s', timestamp, e)
+        exit(2)
 
 
 def main():
@@ -110,10 +111,13 @@ def main():
     if not os.path.exists(path):
         logging.info('%s path not found', timestamp, path)
     else:
+        logging.info('%s Init restore for %s', timestamp, directory)
         logging.info('%s Get %s from TSM', timestamp, directory)
         if get_tsm(path=path, directory=directory):
             restore(path=path, directory=directory)
             shutil.rmtree(os.path.join(path, directory))
+            logging.info('%s Restore of %s successfully completed', timestamp, directory)
+            exit(0)
         else:
             logging.info('%s TSM not find %s backup', timestamp, directory)
             exit(1)
