@@ -237,7 +237,7 @@ def change_meta(path):
 def upload_tsm(path, vmname):
     date = datetime.datetime.now().strftime("%Y/%m/%d")
     output = []
-    command = subprocess.check_output(['sudo', 'dsmc', 'archive', '\''+path + '\'/', '-subdir=yes',
+    command = subprocess.check_output(['sudo', 'dsmc', 'archive', '\''+path + '/\'', '-subdir=yes',
                                        '-description=\'VMDate: ' + date + ' VMName:' + vmname + '\''], cwd='/tmp')
     for line in command.split('\n'):
         output.append(line)
